@@ -64,7 +64,7 @@ O projeto não deve ser executado com Node 22 quando estiver usando o binding at
 Clone o repositório e entre na pasta:
 
 ```powershell
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/Pedro-Lion/Automacao-Financeiro.git
 cd Projeto-Automacao
 ```
 
