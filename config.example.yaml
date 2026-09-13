@@ -1,0 +1,66 @@
+system:
+  name: SAPA
+  version: 1.0.0
+  language: pt-BR
+  log_level: info
+ai:
+  provider: paddleocr
+  confidence_threshold: 0.8
+  provider_config:
+    api_key: ${GEMINI_API_KEY}
+    model: gemini-3.6-flash
+  language: pt
+  python: ".\\.venv-paddle\\Scripts\\python.exe"
+  ocr_version: PP-OCRv4
+whatsapp:
+  provider: waha
+  base_url: "http://127.0.0.1:3000"
+  session_name: default
+  session_path: ./data/session
+  phone_number: ""
+  web_version: "2.3000.1043030358"
+  web_version_cache:
+    type: remote
+    remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/{version}-alpha.html"
+    strict: true
+  groups:
+    notas_fiscais: ""
+    gestores_geral: ""
+    obras: []
+  group_rules:
+    notas_fiscais_name: "Notas Fiscais Gerais"
+    obras_name_prefix: "Obra"
+onedrive:
+  base_path: ./data/onedrive
+  structure:
+    financeiro: "/{obra_name}/Financeiro/"
+    nfs_reembolso: "/{obra_name}/NFs/Reembolso/"
+    nfs_material: "/{obra_name}/NFs/Material_Empresa/"
+    atas: "/{obra_name}/Atas/"
+    fotos: "/{obra_name}/Fotos/{date}/"
+    frequencia: "/{obra_name}/Frequencia/"
+    terceirizados: "/{obra_name}/Terceirizados/"
+    empresa_financeiro: "/Empresa/Financeiro/"
+    empresa_estoque: "/Empresa/Estoque/"
+    empresa_km: "/Empresa/KM/"
+km:
+  rate_per_km: 1.2
+  route_provider: openroute
+  provider_config:
+    api_key: ${OPENROUTE_API_KEY}
+gestores: []
+prestadores: []
+features:
+  f01_notas_fiscais: true
+  f02_conciliacao: true
+  f03_quilometragem: true
+  f04_atas: true
+  f05_midias: true
+  f06_estoque: true
+  f07_frequencia: true
+  f08_terceirizados: true
+  f09_agendamento: false
+schedule:
+  enabled: false
+  time: "20:00"
+  days: mon,tue,wed,thu,fri

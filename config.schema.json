@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "required": ["system", "ai", "whatsapp", "onedrive", "km", "features"],
+  "properties": {
+    "system": {
+      "type": "object",
+      "required": ["name", "version", "language", "log_level"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "language": {"type": "string"},
+        "log_level": {"enum": ["debug", "info", "warn", "error"]}
+      }
+    },
+    "ai": {
+      "type": "object",
+      "required": ["provider", "confidence_threshold"],
+      "properties": {
+        "provider": {"enum": ["gemini", "claude", "openai", "tesseract_only", "paddleocr"]},
+        "confidence_threshold": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "whatsapp": {
+      "type": "object",
+      "properties": {
+        "provider": {"enum": ["waha", "whatsapp-web"]},
+        "base_url": {"type": "string"},
+        "session_name": {"type": "string"},
+        "web_version": {"type": "string"},
+        "groups": {
+          "type": "object",
+          "properties": {
+            "notas_fiscais": {"type": "string"},
+            "gestores_geral": {"type": "string"},
+            "obras": {"type": "array"}
+          }
+        },
+        "web_version_cache": {
+          "type": "object",
+          "properties": {
+            "type": {"enum": ["remote", "local", "none"]},
+            "remotePath": {"type": "string"},
+            "path": {"type": "string"},
+            "strict": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "onedrive": {"type": "object", "required": ["base_path"]},
+    "km": {"type": "object", "required": ["rate_per_km"]},
+    "features": {"type": "object"}
+  }
+}

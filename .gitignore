@@ -1,0 +1,17 @@
+src/.env
+.env
+data/
+logs/
+.venv-paddle/
+__pycache__/
+*.pyc
+.wwebjs_cache/
+node_modules/
+config.yaml
+*.db
+*.db-shm
+*.db-wal
+*.log
+Cliente OAuth criado.txt
+Gemini AI Key.txt
+*.exe
