@@ -7,6 +7,7 @@ class WahaClient extends EventEmitter {
     this.logger = logger || { info() {}, warn() {}, error() {} };
     this.baseUrl = String(config.base_url || 'http://127.0.0.1:3000').replace(/\/+$/, '');
     this.session = config.session_name || 'default';
+    this.apiKey = config.api_key || process.env.WAHA_API_KEY || '';
     this.connected = false;
     this.status = 'disconnected';
     this.client = this;
@@ -15,7 +16,11 @@ class WahaClient extends EventEmitter {
   async request(path, options = {}) {
     const response = await fetch(`${this.baseUrl}${path}`, {
       ...options,
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.apiKey ? { 'X-Api-Key': this.apiKey } : {}),
+        ...(options.headers || {})
+      }
     });
     const text = await response.text();
     let body = null;

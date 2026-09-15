@@ -107,6 +107,26 @@ Edite `config.yaml` e configure pelo menos:
 
 Abra o Docker Desktop e aguarde o engine ficar disponível. Depois, na raiz do projeto:
 
+Crie um arquivo `.env` na raiz do projeto. Use os valores gerados pelo WAHA, sem compartilhá-los ou versioná-los:
+
+```dotenv
+WAHA_API_KEY=cole_a_chave_gerada_pelo_waha
+WAHA_DASHBOARD_USERNAME=admin
+WAHA_DASHBOARD_PASSWORD=cole_a_senha_gerada_pelo_waha
+WHATSAPP_SWAGGER_USERNAME=admin
+WHATSAPP_SWAGGER_PASSWORD=cole_a_senha_gerada_pelo_waha
+```
+
+O `docker-compose.waha.yml` carrega automaticamente esse arquivo. A aplicação SAPA também utiliza `WAHA_API_KEY` para enviar o cabeçalho `X-Api-Key` nas chamadas à API.
+
+Se o container já tiver sido criado com credenciais temporárias, recrie-o depois de salvar o `.env`:
+
+```powershell
+npm run waha:down
+```
+
+Inicie novamente:
+
 ```powershell
 npm run waha:up
 ```
@@ -123,7 +143,15 @@ Abra a interface local:
 http://localhost:3000
 ```
 
-Use a documentação Swagger do WAHA para criar/iniciar a sessão `default` e autenticar o WhatsApp pelo QR Code. Depois da autenticação, execute o SAPA:
+Use o usuário e a senha de `WAHA_DASHBOARD_USERNAME` e `WAHA_DASHBOARD_PASSWORD` para acessar o painel. Para a documentação Swagger, use `WHATSAPP_SWAGGER_USERNAME` e `WHATSAPP_SWAGGER_PASSWORD`.
+
+No Swagger, clique em **Authorize** e informe:
+
+```text
+X-Api-Key: valor de WAHA_API_KEY
+```
+
+Depois crie/inicie a sessão `default` e autentique o WhatsApp pelo QR Code. Execute o SAPA somente após a sessão estar conectada:
 
 ```powershell
 node src\index.js run

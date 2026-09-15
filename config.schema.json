@@ -26,6 +26,7 @@
         "provider": {"enum": ["waha", "whatsapp-web"]},
         "base_url": {"type": "string"},
         "session_name": {"type": "string"},
+        "api_key": {"type": "string"},
         "web_version": {"type": "string"},
         "groups": {
           "type": "object",
