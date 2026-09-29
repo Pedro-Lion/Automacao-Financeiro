@@ -20,6 +20,9 @@ class Orchestrator {
     try {
       this.logger.info('Aguardando conexão do WhatsApp para iniciar a leitura.', { module: 'ORCHESTRATOR' });
       await this.whatsapp.connect();
+      if (typeof this.whatsapp.isConnected === 'function' && !this.whatsapp.isConnected()) {
+        throw new Error(`WhatsApp não está conectado; estado atual: ${this.whatsapp.getStatus?.() || 'desconhecido'}.`);
+      }
       const diagnostics = await this.whatsapp.getConnectionDiagnostics?.();
       if (diagnostics) {
         this.logger.info(`Sessão WhatsApp validada: ${JSON.stringify(diagnostics)}.`, { module: 'ORCHESTRATOR' });
@@ -185,7 +188,7 @@ class Orchestrator {
       throw new Error(`Sessão autenticada, mas a API getChats() do WhatsApp Web falhou. Configure o ID de "${nfName}" em whatsapp.groups.notas_fiscais ou reinicie a sessão. Causa: ${formatError(lastError)}`);
     }
     const available = chats.filter(chat => chat.isGroup).map(chat => ({
-      id: chat.id._serialized, name: chat.name || chat.id._serialized,
+      id: chat.id?._serialized || chat.id, name: chat.name || chat.id?._serialized || chat.id,
       type: 'obra'
     }));
     const nfChat = configuredId

@@ -6,6 +6,8 @@ const { WhatsAppClient } = require('./adapters/whatsapp/client');
 const { WhatsAppReader } = require('./adapters/whatsapp/reader');
 const { WahaClient } = require('./adapters/whatsapp/waha-client');
 const { WahaReader } = require('./adapters/whatsapp/waha-reader');
+const { EvolutionClient } = require('./adapters/whatsapp/evolution-client');
+const { EvolutionReader } = require('./adapters/whatsapp/evolution-reader');
 const { MessageClassifier } = require('./core/classifier');
 const { Orchestrator } = require('./core/orchestrator');
 const { F01NotasFiscais } = require('./features/f01-notas-fiscais');
@@ -33,14 +35,20 @@ async function main() {
   const state = command === 'setup' ? null : new State();
   const whatsapp = config.whatsapp.provider === 'waha'
     ? new WahaClient(config.whatsapp, logger)
-    : new WhatsAppClient(config.whatsapp, logger);
+    : config.whatsapp.provider === 'evolution'
+      ? new EvolutionClient(config.whatsapp, logger)
+      : new WhatsAppClient(config.whatsapp, logger);
   const featureClasses = [F01NotasFiscais, F02Conciliacao, F03Quilometragem, F04Atas, F05Midias, F06Estoque, F07Frequencia, F08Terceirizados, F09Agendamento];
   const features = featureClasses.map(Feature => {
     const feature = new Feature(config, {});
     feature.enabled = config.features[feature.name] !== false;
     return feature;
   });
-  const reader = config.whatsapp.provider === 'waha' ? new WahaReader(whatsapp) : new WhatsAppReader(whatsapp);
+  const reader = config.whatsapp.provider === 'waha'
+    ? new WahaReader(whatsapp)
+    : config.whatsapp.provider === 'evolution'
+      ? new EvolutionReader(whatsapp, state, config.whatsapp.instance_name || config.whatsapp.session_name)
+      : new WhatsAppReader(whatsapp);
   const orchestrator = new Orchestrator({ config, state, logger, whatsapp, reader, classifier: new MessageClassifier(), features });
   try {
     if (command === 'setup') {

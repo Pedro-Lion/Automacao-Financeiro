@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Database = require('better-sqlite3');
 
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 const schema = `
 PRAGMA foreign_keys = ON;
@@ -93,6 +93,23 @@ CREATE TABLE IF NOT EXISTS execution_log (
   messages_errors INTEGER DEFAULT 0, messages_pending INTEGER DEFAULT 0, features_run TEXT,
   files_written TEXT, errors TEXT, status TEXT DEFAULT 'running'
 );
+CREATE TABLE IF NOT EXISTS whatsapp_inbox (
+  instance_name TEXT NOT NULL,
+  message_id TEXT NOT NULL,
+  remote_jid TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'received',
+  received_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  processed_at TEXT,
+  error TEXT,
+  PRIMARY KEY (instance_name, message_id)
+);
+CREATE TABLE IF NOT EXISTS whatsapp_connection_state (
+  instance_name TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  qr TEXT,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS conciliacao (
   id INTEGER PRIMARY KEY AUTOINCREMENT, mes_referencia TEXT NOT NULL,
   fatura_item_data TEXT, fatura_item_valor REAL, fatura_item_estabelecimento TEXT,
@@ -122,6 +139,7 @@ class State {
   migrate() {
     const current = this.db.prepare('SELECT version FROM schema_version ORDER BY version DESC LIMIT 1').get()?.version || 0;
     if (!current) this.db.prepare('INSERT INTO schema_version(version) VALUES (?)').run(CURRENT_SCHEMA_VERSION);
+    else if (current < CURRENT_SCHEMA_VERSION) this.db.prepare('UPDATE schema_version SET version = ?').run(CURRENT_SCHEMA_VERSION);
     else if (current > CURRENT_SCHEMA_VERSION) throw new Error(`Banco v${current} é mais novo que esta aplicação (v${CURRENT_SCHEMA_VERSION}).`);
   }
 
@@ -198,6 +216,37 @@ class State {
 
   getLastExecution() {
     return this.db.prepare('SELECT * FROM execution_log ORDER BY id DESC LIMIT 1').get() || null;
+  }
+
+  enqueueWhatsAppMessage(instanceName, messageId, remoteJid, payload) {
+    if (!instanceName || !messageId || !remoteJid) throw new Error('Instância, messageId e remoteJid são obrigatórios.');
+    return this.db.prepare(`
+      INSERT OR IGNORE INTO whatsapp_inbox(instance_name, message_id, remote_jid, payload)
+      VALUES (?, ?, ?, ?)
+    `).run(instanceName, messageId, remoteJid, JSON.stringify(payload));
+  }
+
+  updateWhatsAppInboxStatus(instanceName, messageId, status, error = null) {
+    return this.db.prepare(`
+      UPDATE whatsapp_inbox SET status = ?, error = ?,
+        processed_at = CASE WHEN ? IN ('processed', 'error') THEN CURRENT_TIMESTAMP ELSE processed_at END
+      WHERE instance_name = ? AND message_id = ?
+    `).run(status, error, status, instanceName, messageId);
+  }
+
+  getWhatsAppInbox(status = 'received', limit = 100) {
+    return this.db.prepare(`
+      SELECT * FROM whatsapp_inbox WHERE status = ? ORDER BY received_at, message_id LIMIT ?
+    `).all(status, limit).map(item => ({ ...item, payload: JSON.parse(item.payload) }));
+  }
+
+  updateWhatsAppConnection(instanceName, state, qr = null) {
+    return this.db.prepare(`
+      INSERT INTO whatsapp_connection_state(instance_name, state, qr)
+      VALUES (?, ?, ?)
+      ON CONFLICT(instance_name) DO UPDATE SET state=excluded.state, qr=excluded.qr,
+        updated_at=CURRENT_TIMESTAMP
+    `).run(instanceName, state, qr);
   }
 
   close() { if (this.db.open) this.db.close(); }

@@ -7,7 +7,9 @@ class WhatsAppSender {
     if (wait) await new Promise(resolve => setTimeout(resolve, wait));
     const normalized = `${phone.replace(/\D/g, '')}@c.us`;
     try {
-      const result = await this.client.client.sendMessage(normalized, text);
+      const result = typeof this.client.sendText === 'function'
+        ? await this.client.sendText(normalized, text)
+        : await this.client.client.sendMessage(normalized, text);
       this.lastSent = Date.now();
       this.logger.info(`Mensagem privada enviada para ${normalized}.`, { module: 'WHATSAPP' });
       return result;

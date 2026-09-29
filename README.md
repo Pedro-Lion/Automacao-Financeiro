@@ -46,6 +46,8 @@ O fluxo completo de WhatsApp até OCR ainda está em desenvolvimento. As feature
 - WAHA Core executado em Docker Desktop, como integração principal em teste;
 - `whatsapp-web.js` preservado como adaptador alternativo;
 - WhatsApp Business Cloud API planejada para uma avaliação posterior com conta comercial oficial.
+- Evolution API adicionada como provedor experimental recomendado para homologação,
+  com sessão Baileys, API REST e suporte a webhook.
 
 ## Requisitos
 
@@ -53,6 +55,7 @@ O fluxo completo de WhatsApp até OCR ainda está em desenvolvimento. As feature
 - Node.js 24 ou superior;
 - Python 3.11;
 - Docker Desktop, quando o provedor WAHA for usado;
+- Docker Desktop, quando o provedor Evolution for usado;
 - Git;
 - conta WhatsApp disponível para autenticação por QR Code;
 - acesso à internet para instalar dependências e baixar modelos do OCR.
@@ -100,6 +103,7 @@ Edite `config.yaml` e configure pelo menos:
 - `ai.python` para apontar para o Python do ambiente PaddleOCR;
 - `whatsapp.provider`;
 - `whatsapp.base_url` e `whatsapp.session_name` para WAHA;
+- `whatsapp.base_url`, `whatsapp.api_key` e `whatsapp.instance_name` para Evolution;
 - o grupo autorizado em `whatsapp.groups.notas_fiscais`, quando o ID já for conhecido;
 - chaves externas apenas por variáveis de ambiente ou arquivo local ignorado pelo Git.
 
@@ -164,6 +168,99 @@ npm run waha:down
 ```
 
 O WAHA é uma automação não oficial do WhatsApp. A conta usada para testes pode estar sujeita às regras e limitações da plataforma. Não utilize contas críticas sem avaliar esse risco.
+
+## Executando com Evolution API
+
+A Evolution API é executada separadamente do SAPA e usa uma instância persistente
+do WhatsApp. A configuração inicial usa a integração `WHATSAPP-BAILEYS`.
+Baileys continua sendo uma automação não oficial do WhatsApp; use uma conta
+dedicada para homologação e não substitua a Cloud API oficial da Meta por este
+fluxo em cenários que exigem garantia comercial.
+
+Quando a leitura do QR Code falhar, a Evolution `v2.3.7` também pode solicitar
+um pairing code. Esse fluxo continua sendo não oficial e exige o número da
+conta em formato internacional, somente dígitos:
+
+```yaml
+whatsapp:
+  provider: evolution
+  pairing_code: true
+  phone_number: "5511999990000"
+```
+
+Como alternativa, mantenha o número fora do `config.yaml` e use no `.env`:
+
+```dotenv
+EVOLUTION_PAIRING_CODE=true
+EVOLUTION_PHONE_NUMBER=5511999990000
+```
+
+Depois de reiniciar o SAPA, o código será informado no log como
+`awaiting_pairing_code`. No WhatsApp, abra **Dispositivos conectados**,
+selecione **Conectar com número de telefone** e informe o código exibido.
+O número deve estar disponível para autenticação nessa instância; não use
+simultaneamente a mesma sessão em outro provedor.
+
+Crie ou complemente o `.env` na raiz:
+
+```dotenv
+EVOLUTION_API_KEY=gere-uma-chave-longa-e-segura
+EVOLUTION_WEBHOOK_SECRET=gere-outro-segredo
+EVOLUTION_DB_PASSWORD=gere-uma-senha-longa-para-o-postgres
+```
+
+Inicie a API:
+
+```powershell
+npm run evolution:up
+docker compose -f docker-compose.evolution.yml ps
+```
+
+Copie `config.example.yaml` para `config.yaml` e mantenha:
+
+```yaml
+whatsapp:
+  provider: evolution
+  base_url: "http://127.0.0.1:8080"
+  api_key: "${EVOLUTION_API_KEY}"
+  instance_name: sapa
+```
+
+Crie a instância e obtenha o QR Code:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8080/instance/create `
+  -H "Content-Type: application/json" `
+  -H "apikey: $env:EVOLUTION_API_KEY" `
+  -d '{ "instanceName": "sapa", "integration": "WHATSAPP-BAILEYS", "qrcode": true }'
+
+curl.exe http://127.0.0.1:8080/instance/connect/sapa `
+  -H "apikey: $env:EVOLUTION_API_KEY"
+```
+
+Verifique o estado:
+
+```powershell
+curl.exe http://127.0.0.1:8080/instance/connectionState/sapa `
+  -H "apikey: $env:EVOLUTION_API_KEY"
+```
+
+Quando o estado estiver conectado, execute:
+
+```powershell
+node src\index.js run
+```
+
+Para parar a API:
+
+```powershell
+npm run evolution:down
+```
+
+O adaptador Evolution também possui handler e servidor HTTP para eventos
+`MESSAGES_UPSERT`, `CONNECTION_UPDATE` e `QRCODE_UPDATED`. A integração deve
+ser exposta somente em rede controlada, com o segredo configurado, limite de
+payload e sem registrar QR Code ou credenciais.
 
 ## Executando com `whatsapp-web.js`
 

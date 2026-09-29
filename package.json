@@ -10,6 +10,9 @@
     "waha:up": "docker compose -f docker-compose.waha.yml up -d",
     "waha:logs": "docker compose -f docker-compose.waha.yml logs -f waha",
     "waha:down": "docker compose -f docker-compose.waha.yml down",
+    "evolution:up": "docker compose -f docker-compose.evolution.yml up -d",
+    "evolution:logs": "docker compose -f docker-compose.evolution.yml logs -f evolution-api",
+    "evolution:down": "docker compose -f docker-compose.evolution.yml down",
     "get-group-id": "node scripts/get-group-id.js"
   },
   "engines": {

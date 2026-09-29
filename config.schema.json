@@ -23,10 +23,23 @@
     "whatsapp": {
       "type": "object",
       "properties": {
-        "provider": {"enum": ["waha", "whatsapp-web"]},
+        "provider": {"enum": ["evolution", "waha", "whatsapp-web"]},
         "base_url": {"type": "string"},
         "session_name": {"type": "string"},
+        "instance_name": {"type": "string"},
+        "pairing_code": {"type": "boolean"},
+        "phone_number": {"type": "string"},
         "api_key": {"type": "string"},
+        "request_timeout_ms": {"type": "number", "minimum": 1000},
+        "retry_count": {"type": "number", "minimum": 0, "maximum": 5},
+        "webhook": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "secret": {"type": "string"},
+            "base64": {"type": "boolean"}
+          }
+        },
         "web_version": {"type": "string"},
         "groups": {
           "type": "object",

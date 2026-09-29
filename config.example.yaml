@@ -13,8 +13,17 @@ ai:
   python: ".\\.venv-paddle\\Scripts\\python.exe"
   ocr_version: PP-OCRv4
 whatsapp:
-  provider: waha
-  base_url: "http://127.0.0.1:3000"
+  provider: evolution
+  base_url: "http://127.0.0.1:8080"
+  api_key: ${EVOLUTION_API_KEY}
+  instance_name: sapa
+  pairing_code: false
+  request_timeout_ms: 15000
+  retry_count: 2
+  webhook:
+    enabled: false
+    secret: ${EVOLUTION_WEBHOOK_SECRET}
+    base64: false
   session_name: default
   session_path: ./data/session
   phone_number: ""

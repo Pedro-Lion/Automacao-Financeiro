@@ -1,0 +1,11 @@
+(.venv-paddle) PS C:\Users\pedro\OneDrive - SPTech School\5° Semestre\Projeto-Automacao> node src\index.js setup
+[2026-09-24T02:41:49.829Z] [INFO] [APP] SAPA iniciado. Comando: setup.
+[2026-09-24T02:41:49.830Z] [INFO] [WHATSAPP] Conectando ao WAHA em http://127.0.0.1:3000.
+[2026-09-24T02:41:49.849Z] [ERROR] [WHATSAPP] Falha ao conectar ao WAHA: fetch failed
+[SAPA] TypeError: fetch failed
+    at node:internal/deps/undici/undici:15445:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async WahaClient.request (C:\Users\pedro\OneDrive - SPTech School\5° Semestre\Projeto-Automacao\src\adapters\whatsapp\waha-client.js:17:22)
+    at async WahaClient.connect (C:\Users\pedro\OneDrive - SPTech School\5° Semestre\Projeto-Automacao\src\adapters\whatsapp\waha-client.js:39:7)
+    at async Orchestrator.setup (C:\Users\pedro\OneDrive - SPTech School\5° Semestre\Projeto-Automacao\src\core\orchestrator.js:7:19)
+    at async main (C:\Users\pedro\OneDrive - SPTech School\5° Semestre\Projeto-Automacao\src\index.js:55:7)

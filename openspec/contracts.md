@@ -72,6 +72,22 @@ interface Message {
   filename?: string;
 }
 
+### 1.1.1 Evolution API provider notes
+
+The Evolution provider MUST implement the same canonical message shape above.
+Its transport-specific payload is isolated in the adapter:
+
+- authentication uses the `apikey` HTTP header;
+- a WhatsApp Web JID is represented as `phone@c.us` or `group@g.us`;
+- connection states are normalized to `initializing`, `awaiting_qr`,
+  `ready`, `disconnected` and `error`;
+- `getChats()` returns `{ id: string, name: string, isGroup: boolean }`;
+- `getChatById()` may expose the compatibility shape
+  `{ id: { _serialized: string }, name, isGroup }`;
+- webhook messages are deduplicated by `instance_name + message_id`;
+- adapter diagnostics MUST omit API keys, webhook secrets, QR contents and
+  binary media.
+
 ```
 
 ### 1.2 AI Adapter
@@ -505,4 +521,3 @@ interface ErrorHandler {
 // Se um item falha, é marcado como 'error' e o próximo é processado
 
 ```
-
